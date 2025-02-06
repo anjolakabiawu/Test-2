@@ -1,7 +1,6 @@
 import pandas as pd
 
 def get_lga_results(lga_id):
-    # Load CSV files
     results_df = pd.read_csv("announced_pu_results.csv")
     polling_df = pd.read_csv("polling_unit.csv")
 

@@ -1,7 +1,6 @@
 import pandas as pd
 
 def get_polling_unit_results(polling_unit_id):
-    # Load CSV
     df = pd.read_csv("announced_pu_results.csv")
     
     # Filter by polling unit ID
