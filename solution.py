@@ -1,17 +1,19 @@
-from database import connect_db
+import pandas as pd
 
-def get_polling_unit_results(pollong_unit_id):
-    conn = connect_db()
-    if conn:
-        cursor = conn.cursor(dictionary=True)
-        query = "SELECT * FROM announced_pu_results WHERE polling_unit_uniqueid = %s"
-        cursor.execute(query, (pollong_unit_id,))
-        results = cursor.fetchall()
-        conn.close()
-        return results
+def get_polling_unit_results(polling_unit_id):
+    # Load CSV
+    df = pd.read_csv("announced_pu_results.csv")
     
+    # Filter by polling unit ID
+    results = df[df["polling_unit_uniqueid"] == int(polling_unit_id)][["party_abbreviation", "party_score"]]
+    
+    return results
+
 polling_unit_id = input("Enter Polling Unit ID: ")
 results = get_polling_unit_results(polling_unit_id)
 
-for result in results:
-    print(f"Party: {result['party_abbreviation']}, Score: {result['party_score']}")
+if results.empty:
+    print("❌ No results found for this Polling Unit ID.")
+else:
+    for _, row in results.iterrows():
+        print(f"Party: {row['party_abbreviation']}, Score: {row['party_score']}")

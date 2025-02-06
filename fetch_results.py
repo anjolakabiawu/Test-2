@@ -1,24 +1,26 @@
-from database import connect_db
+import pandas as pd
 
 def get_lga_results(lga_id):
-    conn = connect_db()
-    if conn:
-        cursor = conn.cursor(dictionary=True)
-        query = """
-            SELECT party_abbreviation, SUM(party_score) AS total_score 
-            FROM announced_pu_results
-            WHERE polling_unit_uniqueid IN (
-                SELECT uniqueid FROM polling_unit WHERE lga_id = %s
-            )
-            GROUP BY party_abbreviation
-        """
-        cursor.execute(query, (lga_id,))
-        results = cursor.fetchall()
-        conn.close()
-        return results
+    # Load CSV files
+    results_df = pd.read_csv("announced_pu_results.csv")
+    polling_df = pd.read_csv("polling_unit.csv")
+
+    # Find polling units for the given LGA
+    lga_polling_units = polling_df[polling_df["lga_id"] == int(lga_id)]["uniqueid"]
+
+    # Filter results for those polling units
+    lga_results = results_df[results_df["polling_unit_uniqueid"].isin(lga_polling_units)]
+    
+    # Aggregate scores per party
+    summary = lga_results.groupby("party_abbreviation")["party_score"].sum().reset_index()
+
+    return summary
 
 lga_id = input("Enter LGA ID: ")
 lga_results = get_lga_results(lga_id)
 
-for result in lga_results:
-    print(f"Party: {result['party_abbreviation']}, Total Score: {result['total_score']}")
+if lga_results.empty:
+    print("❌ No results found for this LGA ID.")
+else:
+    for _, row in lga_results.iterrows():
+        print(f"Party: {row['party_abbreviation']}, Total Score: {row['party_score']}")
